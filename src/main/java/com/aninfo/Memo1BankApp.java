@@ -1,7 +1,9 @@
 package com.aninfo;
 
 import com.aninfo.model.Account;
+import com.aninfo.model.Transaction;
 import com.aninfo.service.AccountService;
+import com.aninfo.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -26,6 +28,8 @@ public class Memo1BankApp {
 
 	@Autowired
 	private AccountService accountService;
+	@Autowired
+	private TransactionService transactionService;
 
 	public static void main(String[] args) {
 		SpringApplication.run(Memo1BankApp.class, args);
@@ -66,15 +70,34 @@ public class Memo1BankApp {
 	}
 
 	@PutMapping("/accounts/{cbu}/withdraw")
-	public Account withdraw(@PathVariable Long cbu, @RequestParam Double sum) {
-		return accountService.withdraw(cbu, sum);
+	public Transaction withdraw(@PathVariable Long cbu, @RequestParam Double sum) {
+		Transaction transaction = new Transaction('W', cbu, sum);
+		return transactionService.createTransaction(transaction);
 	}
 
 	@PutMapping("/accounts/{cbu}/deposit")
-	public Account deposit(@PathVariable Long cbu, @RequestParam Double sum) {
-		return accountService.deposit(cbu, sum);
+	public Transaction deposit(@PathVariable Long cbu, @RequestParam Double sum) {
+		Transaction transaction = new Transaction('D', cbu, sum);
+		return transactionService.createTransaction(transaction);
 	}
 
+
+
+	@GetMapping("/transactions/cbu/{cbuAccount}")
+	public Collection<Transaction>  getTransactionByCbuAccount(@PathVariable Long cbuAccount) {
+		return transactionService.findByCbuAccount(cbuAccount);
+	}
+
+	@GetMapping("/transactions/{idTransaction}")
+	public ResponseEntity<Transaction> getTransaction(@PathVariable Long idTransaction) {
+		Optional<Transaction> transactionOptional = transactionService.findByIdTransaction(idTransaction);
+		return ResponseEntity.of(transactionOptional);
+	}
+
+	@DeleteMapping("/transactions/{idTransaction}")
+	public void deleteTransaction(@PathVariable Long idTransaction) {
+		transactionService.deleteByIdTransaction(idTransaction);
+	}
 	@Bean
 	public Docket apiDocket() {
 		return new Docket(DocumentationType.SWAGGER_2)
